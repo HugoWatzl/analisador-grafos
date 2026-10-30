@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore grafos e acompanhe DFS, BFS, Dijkstra e Kruskal passo a passo."
+    />
+    <title>Analisador</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="algorithms.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./">Analisador</a>
+      <button id="finish" class="finish-button">Finalizar aplicação</button>
+    </header>
+    <main id="workspace">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="status-dot"></span
+          ><strong id="graphName">Rede de exemplo</strong
+          ><span class="pill" id="kindLabel">Não direcionado</span
+          ><span class="pill" id="weightLabel">Com pesos</span>
+        </div>
+        <div class="actions">
+          <button id="example">↻ Grafo do enunciado</button>
+          <button id="clear" class="danger-text">Limpar</button>
+        </div>
+      </div>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+      <div class="layout">
+        <aside class="card input-panel">
+          <div class="section-heading">
+            <h2><span class="number">01</span> Construir grafo</h2>
+            <span class="tiny-label">ENTRADA</span>
+          </div>
+          <div class="switches">
+            <label><input type="checkbox" id="directed" /> Direcionado</label
+            ><label
+              ><input type="checkbox" id="weighted" checked /> Com pesos</label
+            >
+          </div>
+          <label class="field-label" for="vertices"
+            >Vértices <span>inclua os isolados</span></label
+          ><input id="vertices" placeholder="A B C D E" autocomplete="off" />
+          <div class="tabs" role="tablist">
+            <button id="textTab" role="tab" aria-selected="true">Texto</button
+            ><button id="tableTab" role="tab" aria-selected="false">
+              Tabela de arestas
+            </button>
+          </div>
+          <div id="textEditor">
+            <div class="editor-top">
+              <span id="formatHint">ORIGEM · DESTINO · PESO</span
+              ><span>uma aresta / linha</span>
+            </div>
+            <textarea
+              id="edges"
+              spellcheck="false"
+              aria-label="Arestas do grafo"
+              placeholder="A B 4&#10;B C 2"
+            ></textarea>
+          </div>
+          <div id="tableEditor" hidden>
+            <div class="edge-scroll">
+              <table class="edge-table">
+                <thead>
+                  <tr>
+                    <th>De</th>
+                    <th>Para</th>
+                    <th>Peso</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="edgeRows"></tbody>
+              </table>
+            </div>
+            <button id="addRow" class="full">+ Adicionar aresta</button>
+          </div>
+          <p class="hint">
+            Separe os valores por espaço, vírgula ou ponto e vírgula. Nomes sem
+            espaços.
+          </p>
+          <button id="apply" class="primary full">
+            Aplicar grafo <span>→</span>
+          </button>
+          <p id="dirty" class="dirty" hidden>
+            Há alterações ainda não aplicadas.
+          </p>
+        </aside>
+        <section class="card graph-panel">
+          <div class="section-heading">
+            <h2><span class="number">02</span> Mapa da rede</h2>
+            <button
+              id="layout"
+              class="icon-button"
+              title="Reorganizar vértices"
+            >
+              ↻ Reorganizar
+            </button>
+          </div>
+          <div class="graph-stats">
+            <span><b id="vCount">8</b> vértices</span
+            ><span><b id="eCount">14</b> arestas</span
+            ><span id="graphMode">Lista de adjacência</span>
+          </div>
+          <div class="graph-canvas">
+            <svg
+              id="graph"
+              viewBox="0 0 800 460"
+              role="img"
+              aria-label="Desenho do grafo"
+            ></svg>
+            <div id="emptyGraph" hidden>
+              Seu próximo grafo começa aqui.<br /><small
+                >Cadastre vértices e arestas ao lado.</small
+              >
+            </div>
+            <div class="canvas-hint">ARRASTE OS VÉRTICES PARA ORGANIZAR</div>
+          </div>
+          <div class="legend">
+            <span><i class="legend-default"></i>Vértice</span
+            ><span><i class="legend-visited"></i>Visitado</span
+            ><span><i class="legend-current"></i>Atual</span
+            ><span><i class="legend-edge"></i>Aresta selecionada</span>
+          </div>
+        </section>
+        <aside class="card algo-panel">
+          <div class="section-heading">
+            <h2><span class="number">03</span> Analisar</h2>
+            <span class="tiny-label">4 ALGORITMOS</span>
+          </div>
+          <div class="algo-options">
+            <button data-algo="bfs" class="algo active">
+              <span class="algo-symbol">≋</span
+              ><span><strong>BFS</strong><small>Busca em largura</small></span
+              ><em>O(V + E)</em></button
+            ><button data-algo="dfs" class="algo">
+              <span class="algo-symbol">↳</span
+              ><span
+                ><strong>DFS</strong><small>Busca em profundidade</small></span
+              ><em>O(V + E)</em></button
+            ><button data-algo="dijkstra" class="algo">
+              <span class="algo-symbol">⇢</span
+              ><span
+                ><strong>Dijkstra</strong><small>Menor distância</small></span
+              ><em>O(V² + E)</em></button
+            ><button data-algo="kruskal" class="algo">
+              <span class="algo-symbol">⋈</span
+              ><span
+                ><strong>Kruskal</strong
+                ><small>Árvore geradora mínima</small></span
+              ><em>O(V + E log E)</em>
+            </button>
+          </div>
+          <label for="origin" class="field-label">Vértice de origem</label
+          ><select id="origin"></select>
+          <p class="hint" id="algoHint">
+            Encontra caminhos com o menor número de arestas. Os pesos são
+            ignorados.
+          </p>
+          <button class="primary full" id="run">▶ Executar BFS</button>
+        </aside>
+        <section class="card result-panel">
+          <div class="section-heading">
+            <h2><span class="number">04</span> Execução e resultados</h2>
+            <span class="pill" id="resultBadge">Aguardando execução</span>
+          </div>
+          <div id="resultEmpty" class="result-empty">
+            <span>▷</span>
+            <div>
+              <strong>Nenhum resultado.</strong>
+              <p>Escolha um algoritmo e execute para explorar o resultado.</p>
+            </div>
+          </div>
+          <div id="resultContent" hidden>
+            <div class="execution-guide">
+              <div>
+                <span class="execution-eyebrow">PASSO A PASSO</span>
+                <h3 id="walkTitle">Explore a execução</h3>
+                <p id="walkDescription"></p>
+              </div>
+              <label class="speed-label" for="speed"
+                >Velocidade<select id="speed">
+                  <option value="2000">Lenta · 2 s</option>
+                  <option value="1200" selected>Normal · 1,2 s</option>
+                  <option value="600">Rápida · 0,6 s</option>
+                </select></label
+              >
+            </div>
+            <div class="playback">
+              <button id="first" title="Voltar à primeira etapa">
+                ↶ Início
+              </button>
+              <button id="prev" title="Etapa anterior">← Anterior</button>
+              <button id="play" class="play-primary">▶ Reproduzir</button>
+              <button id="next" title="Próxima etapa">Próximo →</button>
+              <button id="last" title="Ir à última etapa">Ver final ⇥</button>
+            </div>
+            <div class="timeline">
+              <span id="stepCount"></span
+              ><input
+                type="range"
+                id="stepRange"
+                min="0"
+                max="0"
+                value="0"
+                aria-label="Etapa da execução"
+              /><span id="progressPercent">0%</span>
+            </div>
+            <div class="step-card" aria-live="polite">
+              <div class="step-icon" id="stepIcon">01</div>
+              <div>
+                <span class="step-caption" id="stepCaption">ETAPA ATUAL</span>
+                <div class="step-message" id="stepMessage"></div>
+                <p id="stepExplanation"></p>
+              </div>
+            </div>
+            <div class="execution-state">
+              <div class="state-heading">
+                <strong id="traceTitle"></strong><span id="traceHint"></span>
+              </div>
+              <div class="trace" id="trace"></div>
+              <div id="visitedCount" class="visited-count"></div>
+            </div>
+            <div class="final-heading">
+              <h3>Resultado completo</h3>
+              <span
+                >Calculado ao executar; não muda ao navegar pelas etapas.</span
+              >
+            </div>
+            <div id="summary" class="result-summary"></div>
+            <section
+              id="kruskalResult"
+              class="kruskal-result"
+              hidden
+              aria-labelledby="kruskalTitle"
+            >
+              <div class="tree-heading">
+                <div>
+                  <span class="execution-eyebrow">GRAFO RESULTANTE</span>
+                  <h3 id="kruskalTitle">Árvore geradora mínima</h3>
+                </div>
+                <span id="kruskalCost" class="tree-cost"></span>
+              </div>
+              <p id="kruskalDescription" class="tree-description"></p>
+              <div class="tree-canvas">
+                <svg
+                  id="kruskalGraph"
+                  viewBox="0 0 800 460"
+                  role="img"
+                  aria-labelledby="kruskalTitle kruskalDescription"
+                ></svg>
+              </div>
+              <div class="tree-legend">
+                <span><i></i> Arestas selecionadas</span
+                ><span id="kruskalStats"></span>
+              </div>
+            </section>
+            <div class="result-scroll"><table id="results"></table></div>
+          </div>
+        </section>
+        <section class="card memory-panel">
+          <div class="section-heading">
+            <h2><span class="number">05</span> Dentro da memória</h2>
+            <span class="tiny-label">ESTRUTURA REAL</span>
+          </div>
+          <p class="memory-intro">Lista de adjacência · (destino, peso, ID)</p>
+          <div id="memory" class="memory"></div>
+        </section>
+      </div>
+      <footer>
+        <span><b>Analisador</b> · Engenharia de Software</span
+        ><a href="smartnet-projeto.zip" download>↓ Baixar código completo</a>
+      </footer>
+    </main>
+    <section id="ended" hidden aria-labelledby="endedTitle">
+      <div class="ended-card">
+        <h1 id="endedTitle" tabindex="-1">Aplicação finalizada.</h1>
+        <p>A análise foi encerrada.</p>
+        <button id="restart" class="primary">Iniciar nova análise</button>
+      </div>
+    </section>
+  </body>
+</html>
